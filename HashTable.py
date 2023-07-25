@@ -1,85 +1,50 @@
-# The Hash Table Item will take in the key and the value.
-# Maybe the key will be borrowed from the value (the package object)?
-class HashTableItem:
-    def __init__(self, key, value):
-        self.key = key
-        self.value = value
-        self.next = None
-
-    """def __repr__(self):
-        return f"({self.key}, {self.value})"""
-
-
 class HashTable:
-    def __init__(self, initial_capacity=10):
-        self.table = [None] * initial_capacity
+    def __init__(self, size=2, load_factor=0.5):
+        # If exceeds 6/10 full, it will double in size down the road.
+        self.table = [None] * size
+        self.load_factor = load_factor
 
-    def hash_key(self, key):
-        return abs(hash(key)) % len(self.table)
+    def hash_func(self, k):
+        return abs(hash(k))
 
-    def insert(self, key, value):
-        bucket_index = self.hash_key(key)
-        item = self.table[bucket_index]
-        previous = None
-        while item != None:
-            if key == item.key:
-                item.value = value
-                return True
-            previous = item
-            item = item.next
-        if self.table[bucket_index] == None:
-            self.table[bucket_index] = HashTableItem(key, value)
+    def resize(self, old_table):
+        # Old table is the table to be resized
+        new_size = len(old_table) * 2
+        resized_table = [None] * new_size
+        # Adds back in the elements, but they will be in different location
+        # due to the modified modulus value
+        for el in old_table:
+            """
+            I think the NoneType error occurred when I came across an "el" that was None.
+            So there has to be a conditional check, and will only update the non null ones.
+            Look at the DSA1 Zybook on hash table resizing
+            """
+            if el is not None:
+                cur_el_hash = self.hash_func(el[0]) % len(resized_table)
+                resized_table[cur_el_hash] = (el[0], el[1])
+        return resized_table
+
+    def insert(self, k, v):
+        occupied_slots = sum(el is not None for el in self.table)
+        current_lf = occupied_slots / len(self.table)
+        if current_lf >= self.load_factor:  # trigger
+            old_table = self.table
+            # it first makes new table with the new values
+            new_table = self.resize(old_table)
+            # make new hash number with new size
+            bucket_hash = self.hash_func(k) % len(new_table)
+            # append to correct bucket
+            new_table[bucket_hash] = (k, v)
+            # make this new table this instance's default table
+            self.table = new_table
         else:
-            previous.next = HashTableItem(key, value)
-        return True
+            bucket_hash = self.hash_func(k) % len(self.table)
+            self.table[bucket_hash] = (k, v)
 
-    def remove(self, key):
-        bucket_index = self.hash_key(key)
-        item = self.table[bucket_index]
-        previous = None
-        while item != None:
-            if key == item.key:
-                if previous == None:
-                    self.table[bucket_index] = item.next
-                else:
-                    previous.next = item.next
-                return True
-            previous = item
-            item = item.next
-        return False
-
-    def search(self, key):
-        bucket_index = self.hash_key(key)
-        item = self.table[bucket_index]
-        while item != None:
-            if key == item.key:
-                return item.value
-            item = item.next
-        return None
-
-    def __str__(self):
-        result = ""
-        for i in range(len(self.table)):
-            result += "%d: " % i
-            if self.table[i] == None:
-                result += "(empty)\n"
-            else:
-                item = self.table[i]
-                while item != None:
-                    result += "%s, %s --> " % (str(item.key), str(item.value))
-                    item = item.next
-                result += "\n"
-        return result
-
-"""keyw = "123"
-print(f"test hash key random: {abs(hash(keyw))}")
-testHash = HashTable()
-testHash.insert(1, "potato")
-print(testHash.table)
-testHash.insert(1, "strawberry")
-print(testHash.table)
-testHash.insert("food", "ramen")
-print(testHash.table)
-print(testHash.search("food"))
-testHash.remove(1)
-print(testHash.table)"""
+    def search(self, k):
+        bucket_hash = self.hash_func(k) % len(self.table)
+        bucket = self.table[bucket_hash]
+        if bucket is not None:
+            return bucket[1]
+        else:
+            return None
