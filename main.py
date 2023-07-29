@@ -1,8 +1,17 @@
 import Package
 import HashTable
+import CSVRead
 
 
-testHash = HashTable.HashTable()
+# CSVRead.printPkg()
+pkg_table = HashTable.HashTable()
+CSVRead.addPkgs(pkg_table)
+print(pkg_table.table)
+pkg_table.search(9)
+
+
+
+"""testHash = HashTable.HashTable()
 print(testHash.table)
 testPackage = Package.Package(1, "195 W Oakland Ave", "Salt Lake City", 84115, "10:30 AM", 21, "At Hub", None)
 testHash.insert(testPackage.id_num, testPackage)
@@ -19,7 +28,7 @@ testHash.search(11)
 #gunslinger = HashTable.TableItem("Sparks", "Gunslinger")
 #testHash.insert("Sparks", "Gunslinger")
 #(testHash.table)
-"""gunslinger.key = "Sparks"
+gunslinger.key = "Sparks"
 gunslinger.value = "Roxanne"
 testHash.insert(gunslinger.key, gunslinger.value)
 print(testHash.table)
