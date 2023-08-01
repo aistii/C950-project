@@ -21,21 +21,73 @@ CSVRead does these things:
 """
 import csv
 import Package
-import HashTable
+
+# Reads addresses
+with open('data/addresses.csv', newline='') as addresses_csv:
+    addr_reader = csv.reader(addresses_csv)
+    # Each row in the CSV is the address ID number, the name of the location, and the actual address
+    addr_list = [row for row in addr_reader]
+# Reads in distances
+with open('data/distances.csv', newline='') as distances_csv:
+    dist_reader = csv.reader(distances_csv)
+    # Each row in the CSV ties in with each row in the CSV.
+    # Each "column" effectively makes the adjacency matrix.
+    dist_list = [loc for loc in dist_reader]
 
 
-def printPkg():
+def print_dist_mtx():
+    for loc in dist_list:
+        print(f'== {loc}')
+
+
+def print_addr_list():
+    for addr in addr_list:
+        print(f'== {addr}')
+
+
+def dist_mtx_lookup(id_a, id_b):
+    """
+    It will return the value found in the distance matrix.
+
+    Should there not be a value at the coordinate specified, transposition occurs to find the value.
+
+    Note that the ID numbering for addresses start at 0, since index counting starts at 0. It will correlate directly
+    and correctly to the indices in question.
+    :param id_a: first address ID (origin address)
+    :param id_b: second address ID (destination address)
+    :return: distance in miles as a float
+    """
+    if dist_list[id_a][id_b] == "":
+        return float(dist_list[id_b][id_a])
+    else:
+        return float(dist_list[id_a][id_b])
+
+
+def addr_list_lookup(target_addr):
+    """
+    Takes the street name portion of the address. Used in tandem with the distance lookup function.
+    Note that the address passed in must be an address; make sure it's not a truck or package object, but
+    rather, their **address attribute**.
+    :param target_addr: the street name
+    :return: the address ID number
+    """
+    for addr in addr_list:
+        if addr[2] == target_addr:
+            return addr[0]
+
+
+def print_pkg():
     """
     Prints out each line of the packages.csv file.
     :return: none
     """
-    print(f"\n (CSVRead/printPkg()) || Printing list of packages:\n")
     with open('data/packages.csv', newline='') as package_csv:
         pkg_reader = csv.reader(package_csv)
         for pkg in pkg_reader:
             print(f'=== {pkg}')
 
-def addPkgs(hash_table):
+
+def add_pkgs(hash_table):
     """
     Adds all packages listed in the packages.csv file to the hash table. The ID number and weight is converted
     from a string to an integer. The rest of the fields in the CSV file are kept as a string.
@@ -46,15 +98,11 @@ def addPkgs(hash_table):
     - Some of the other fields build the package object to store as a value with the key it's associated with.
     :return:
     """
-    print(f"\n (CSVRead/addPkgs()) || Adding packages from file.\n")
     with open('data/packages.csv', 'r', newline='') as package_csv:
-        pkg_list = csv.reader(package_csv) # list to for-loop through
-        for row in pkg_list: # Note that pkg is a list of values
+        pkg_list = csv.reader(package_csv)  # list to for-loop through
+        for row in pkg_list:  # Note that pkg is a list of values
             pkg_id = int(row[0])
             pkg_weight = int(row[6])
-            # Package defaults to "At or Arriving to Hub" and has no delivery time yet.
-            # Status and delivery time are variable throughout algorithm implementation.
-            # Address may change if there is incorrect address.
             gen_pkg = Package.Package(pkg_id, row[1], row[2], row[4], row[5], pkg_weight,
                                       "At or Arriving to Hub", "")
             hash_table.insert(pkg_id, gen_pkg)
