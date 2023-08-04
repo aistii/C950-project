@@ -23,8 +23,8 @@ truck_1 = Truck.Truck(1, datetime.timedelta(hours=8, minutes=0, seconds=0))  # L
 truck_2 = Truck.Truck(2, datetime.timedelta(hours=9, minutes=5, seconds=0))  # Leaves at 9:05AM
 truck_3 = Truck.Truck(3, None)  # Will leave when one of the other trucks comes back
 pkg_set_1 = [39, 13, 8, 30, 37, 1, 4, 40, 21, 20, 31, 19, 14, 16, 34, 15]
-pkg_set_2 = [3, 5, 38, 36, 17, 6, 28, 2, 33, 12, 32, 25, 18, 11, 25, 26]
-pkg_set_3 = [7, 29, 10, 27, 33, 24, 22, 9]
+pkg_set_2 = [3, 5, 38, 36, 17, 6, 28, 2, 33, 12, 32, 25, 18, 11, 26, 23]
+pkg_set_3 = [7, 29, 10, 27, 35, 24, 22, 9]
 for pkg in pkg_set_1:
     truck_1.load_pkg(pkg_table.search(pkg))
 for pkg in pkg_set_2:
@@ -81,12 +81,9 @@ def sorted_by_time(pkg_list: list):
         return pkg.deadline == "EOD"
 
     eod_list = list(filter(eod_pick, new_list))
-
     for pkg in eod_list:
         new_list.remove(pkg)
-
     new_list = list(sorted(new_list, key=time_sort, reverse=True) + eod_list)
-
     return new_list
 
 
@@ -106,7 +103,7 @@ sorted_truck_3_list = sorted_by_time(truck_3.pkg_list)
 # print(sorted_truck_3_list)  # It is a list of packages
 
 
-def find_nearest_neighbor(current_addr: int, remaining_list: list[Package.Package], truck):
+def find_nearest_neighbor(current_addr: int, remaining_list: list[Package.Package], truck: Truck.Truck):
     """
     Finds the closest node to the current address.
 
@@ -123,7 +120,7 @@ def find_nearest_neighbor(current_addr: int, remaining_list: list[Package.Packag
     closest_node: Package.Package = None
     closest_address_id: int = None  # Holds ID of the current closest address
     closest_address_distance: float = None  # Holds the actual shortest distance from current node
-    print(f"Departing from {CSVRead.addr_name_lookup(current_addr)}!")
+    print(f"\n🚛 Departing from {CSVRead.addr_name_lookup(current_addr)}!")
     for pkg in remaining_list:
         """print(f'Current address: {CSVRead.addr_name_lookup(current_addr)}\n'
               f'Inspecting address: {pkg.address}')"""
@@ -142,8 +139,12 @@ def find_nearest_neighbor(current_addr: int, remaining_list: list[Package.Packag
             closest_address_id = dest_addr_id
             closest_node = pkg
             closest_address_distance = spec_addr_distance
-    print(f"== Will travel {closest_address_distance} miles")
+    print(f"➡️➡️ 🗺️ Will travel {closest_address_distance} miles")
     add_to_odo(closest_address_distance, truck)
+    time_taken = truck.calc_time_taken(closest_address_distance)
+    arrival_time = truck.update_cur_time(time_taken)
+    print(f"➡️➡️ ⏰ Arrives at {CSVRead.addr_name_lookup(closest_address_id)} at {arrival_time}")
+    truck.denote_delivered(closest_node.id_num, pkg_table, arrival_time)
     return closest_node
 
 
@@ -166,28 +167,29 @@ def create_route(pkg_list: list[int], truck: Truck.Truck):
     output_route = []
     truck_pkg_obj_list = [pkg_table.search(package) for package in pkg_list]
     dummy_list = pkg_list.copy()  # To not mutate original list
-    print(f"dummy list {dummy_list}")
+    # print(f"dummy list {dummy_list}")
     current_addr = truck.fetch_curr_addr_id()  # Initially the WGU hub, uses the ID number
     while len(dummy_list) > 0:
-        temp_list = []  # stores all address to insert into the list
-        chosen_package = find_nearest_neighbor(current_addr, truck_pkg_obj_list, truck)
-        print(f'Chose the package: {chosen_package}')
+        temp_list = []  # stores all id num to insert into the list
+        chosen_package = find_nearest_neighbor(current_addr, truck_pkg_obj_list, truck)  # Has its delivery time
+        print(f'📦 Chose the package: {chosen_package}')
         temp_list.append(chosen_package.id_num)  # appending the nearest package first
         dummy_list.remove(chosen_package.id_num)
         truck_pkg_obj_list.remove(chosen_package)
         same_addr_pkg_list = find_same_addr(dummy_list, chosen_package.address)
         for pkg in same_addr_pkg_list:
-            print(f'== same address pkg: {pkg}')
+            print(f'➡️➡️ 📦 same address pkg: {pkg}')
+            truck.denote_delivered(pkg.id_num, pkg_table, chosen_package.delivery_time)
             temp_list.append(pkg.id_num)  # appending same addresses afterwards
             dummy_list.remove(pkg.id_num)
             truck_pkg_obj_list.remove(pkg)
         current_addr = CSVRead.addr_id_lookup(chosen_package.address)  # reassign
         for pkg_id in temp_list:
+            if pkg_table.search(pkg_id).deadline != "EOD":
+                print(f"🤔 ID# {pkg_id} meets deadline? {check_deadline(pkg_id)}")
+            else:
+                print(f"🤔 ID# {pkg_id} meets deadline? {True}")
             output_route.append(pkg_id)
-
-    """
-    TODO: Still a big logic error here I need to focus on it with the debugger.
-    """
     return output_route
 
 
@@ -195,7 +197,36 @@ def add_to_odo(mileage: float, truck: Truck.Truck):
     truck.odo += mileage
 
 
-truck_1_route = create_route(pkg_set_1, truck_1)
-print(f"Truck 1 miles traveled {truck_1.odo}")
-print(truck_1_route)
+def check_deadline(pkg_id: int):
+    """
+    Returns true if all packages are within deadline constraint;
+    false if not.
+    :param pkg_id_list:
+    :return:
+    """
+    pkg = pkg_table.search(pkg_id)
+    if not pkg.delivery_time <= pkg.deadline:
+        return False  # breaks constraint
+    return True  # passes constraint
 
+print(f'✨ Truck 1 Travel! ~~~~~~~~~~~~~~~~~~~~~')
+truck_1_route = create_route(pkg_set_1, truck_1)
+print(f'\n✨ Truck 2 Travel! ~~~~~~~~~~~~~~~~~~~~~')
+truck_2_route = create_route(pkg_set_2, truck_2)
+#truck_3_route = create_route(pkg_set_3, truck_3)
+print(f"\n📝 Truck 1 total miles traveled {truck_1.odo}")
+print(f"📝 Truck 1 started route at {truck_1.departure_time}")
+print(f"📝 Truck 1 finished route at {truck_1.current_time}")
+print(f'🧭 Route, in ID numbers {truck_1_route}')
+
+print(f"\n📝 Truck 2 total miles traveled {truck_2.odo}")
+print(f"📝 Truck 2 started route at {truck_2.departure_time}")
+print(f"📝 Truck 2 finished route at {truck_2.current_time}")
+print(f'🧭 Route, in ID numbers {truck_2_route}')
+
+print(f"Package 15 delivery time and status: {pkg_table.search(15).status} at {pkg_table.search(15).delivery_time}")
+"""
+for pkg_id in truck_1_route:
+    pkg_obj: Package.Package = pkg_table.search(pkg_id)
+    print(f'Pkg ID #{pkg_id} with deadline == {pkg_obj.deadline} == is {pkg_obj.status} at {pkg_obj.delivery_time}')
+"""

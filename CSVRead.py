@@ -20,6 +20,9 @@ CSVRead does these things:
                   prior to transposition.
 """
 import csv
+from datetime import datetime
+import datetime
+
 import Package
 
 # Reads addresses
@@ -114,6 +117,16 @@ def add_pkgs(hash_table):
         for row in pkg_list:  # Note that pkg is a list of values
             pkg_id = int(row[0])
             pkg_weight = int(row[6])
-            gen_pkg = Package.Package(pkg_id, row[1], row[2], row[4], row[5], pkg_weight,
+            pkg_deadline = None
+            if row[5] == "EOD":
+                pkg_deadline = "EOD"
+            else:
+                temp = datetime.datetime.strptime(row[5], "%H:%M:%S")
+                hrs = temp.hour
+                mins = temp.minute
+                secs = temp.second
+                pkg_deadline = datetime.timedelta(hours=hrs, minutes=mins, seconds=secs,)
+
+            gen_pkg = Package.Package(pkg_id, row[1], row[2], row[4], pkg_deadline, pkg_weight,
                                       "At or Arriving to Hub", "")
             hash_table.insert(pkg_id, gen_pkg)
