@@ -53,17 +53,17 @@ def dist_mtx_lookup(id_a, id_b):
 
     Note that the ID numbering for addresses start at 0, since index counting starts at 0. It will correlate directly
     and correctly to the indices in question.
-    :param id_a: first address ID (origin address)
-    :param id_b: second address ID (destination address)
+    :param id_a: first address ID (origin address ID)
+    :param id_b: second address ID (destination address ID)
     :return: distance in miles as a float
     """
-    if dist_list[id_a][id_b] == "":
-        return float(dist_list[id_b][id_a])
+    if dist_list[int(id_a)][int(id_b)] == "":
+        return float(dist_list[int(id_b)][int(id_a)])
     else:
-        return float(dist_list[id_a][id_b])
+        return float(dist_list[int(id_a)][int(id_b)])
 
 
-def addr_list_lookup(target_addr):
+def addr_id_lookup(target_addr):
     """
     Takes the street name portion of the address. Used in tandem with the distance lookup function.
     Note that the address passed in must be an address; make sure it's not a truck or package object, but
@@ -74,6 +74,17 @@ def addr_list_lookup(target_addr):
     for addr in addr_list:
         if addr[2] == target_addr:
             return addr[0]
+
+
+def addr_name_lookup(addr_id):
+    """
+    A reversal of addr_id_lookup(); it will take the ID and return the appropriate address.
+    :param addr_id: address ID
+    :return: the street name
+    """
+    for addr in addr_list:
+        if addr[0] == addr_id:
+            return addr[2]
 
 
 def print_pkg():

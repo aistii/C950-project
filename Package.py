@@ -13,7 +13,7 @@ class Package:
         self.delivery_time = delivery_time
 
     def __str__(self):
-        return f"Package ID# {self.id_num} for {self.address}, {self.city}"
+        return f"Package ID# {self.id_num} for {self.address}, {self.city} due {self.deadline}"
 
     def update_address(self, new_addr, new_city, new_zip):
         """
@@ -37,4 +37,4 @@ class Package:
             self.delivery_time = delivery_time
 
     def addr_id_lookup(self):
-        return CSVRead.addr_list_lookup(self.address)
+        return CSVRead.addr_id_lookup(self.address)

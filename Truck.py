@@ -49,4 +49,4 @@ class Truck:
 
     def fetch_curr_addr_id(self):
         print(self.current_addr)
-        return CSVRead.addr_list_lookup(self.current_addr)
+        return CSVRead.addr_id_lookup(self.current_addr)
