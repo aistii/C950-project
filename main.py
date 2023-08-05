@@ -184,6 +184,7 @@ def create_route(pkg_list: list[int], truck: Truck.Truck):
             dummy_list.remove(pkg.id_num)
             truck_pkg_obj_list.remove(pkg)
         current_addr = CSVRead.addr_id_lookup(chosen_package.address)  # reassign
+        truck.current_addr = CSVRead.addr_name_lookup(current_addr)
         for pkg_id in temp_list:
             if pkg_table.search(pkg_id).deadline != "EOD":
                 print(f"🤔 ID# {pkg_id} meets deadline? {check_deadline(pkg_id)}")
@@ -209,22 +210,63 @@ def check_deadline(pkg_id: int):
         return False  # breaks constraint
     return True  # passes constraint
 
+
+def return_truck(truck_a: Truck.Truck, truck_b: Truck.Truck):
+    """
+    Determines which truck to send back to the hub based on distance.
+    :param truck_a: truck A
+    :param truck_b: truck B
+    :return: none
+    """
+    truck_a_distance_from_hub = CSVRead.dist_mtx_lookup(0, CSVRead.addr_id_lookup(truck_a.current_addr))
+    truck_b_distance_from_hub = CSVRead.dist_mtx_lookup(0, CSVRead.addr_id_lookup(truck_b.current_addr))
+
+
+    if truck_a_distance_from_hub <= truck_b_distance_from_hub:
+        truck_a.current_addr = CSVRead.addr_name_lookup(0)  # Make the truck "travel" back
+        add_to_odo(truck_a_distance_from_hub, truck_a)  # Add the mileage to odometer for travel
+        new_time = truck_a.calc_time_taken(truck_a_distance_from_hub)
+        truck_a.update_cur_time(new_time)
+        returning_truck = truck_a
+    else:
+        truck_b.current_addr = CSVRead.addr_name_lookup(0)  # Make the truck "travel" back
+        add_to_odo(truck_b_distance_from_hub, truck_b)  # Add the mileage to odometer for travel
+        new_time = truck_b.calc_time_taken(truck_b_distance_from_hub)
+        truck_b.update_cur_time(new_time)
+        returning_truck = truck_b
+    return returning_truck
+
+
 print(f'✨ Truck 1 Travel! ~~~~~~~~~~~~~~~~~~~~~')
 truck_1_route = create_route(pkg_set_1, truck_1)
-print(f'\n✨ Truck 2 Travel! ~~~~~~~~~~~~~~~~~~~~~')
-truck_2_route = create_route(pkg_set_2, truck_2)
-#truck_3_route = create_route(pkg_set_3, truck_3)
 print(f"\n📝 Truck 1 total miles traveled {truck_1.odo}")
 print(f"📝 Truck 1 started route at {truck_1.departure_time}")
 print(f"📝 Truck 1 finished route at {truck_1.current_time}")
 print(f'🧭 Route, in ID numbers {truck_1_route}')
-
+print("----------------------------------------------------------------------------------------")
+print(f'\n✨ Truck 2 Travel! ~~~~~~~~~~~~~~~~~~~~~')
+truck_2_route = create_route(pkg_set_2, truck_2)
 print(f"\n📝 Truck 2 total miles traveled {truck_2.odo}")
 print(f"📝 Truck 2 started route at {truck_2.departure_time}")
 print(f"📝 Truck 2 finished route at {truck_2.current_time}")
 print(f'🧭 Route, in ID numbers {truck_2_route}')
+print("----------------------------------------------------------------------------------------")
+print(f'\n✨ Truck 3 Travel! ~~~~~~~~~~~~~~~~~~~~~')
+truck_returning = return_truck(truck_1, truck_2)
+print(f'Truck {truck_returning.truck_num} is returning to the depot to switch vehicles.')
+truck_3.departure_time = truck_returning.current_time
+truck_3.current_time = truck_3.departure_time
+print(f'Truck 3 is starting at {truck_3.departure_time}')
+truck_3_route = create_route(pkg_set_3, truck_3)
+print(f"\n📝 Truck 3 total miles traveled {truck_3.odo}")
+print(f"📝 Truck 3 started route at {truck_3.departure_time}")
+print(f"📝 Truck 3 finished route at {truck_3.current_time}")
+print(f'🧭 Route, in ID numbers {truck_3_route}')
+print("----------------------------------------------------------------------------------------")
+print(f'All mileage: {combined_odo()}')
 
-print(f"Package 15 delivery time and status: {pkg_table.search(15).status} at {pkg_table.search(15).delivery_time}")
+
+#print(f"Package 15 delivery time and status: {pkg_table.search(15).status} at {pkg_table.search(15).delivery_time}")
 """
 for pkg_id in truck_1_route:
     pkg_obj: Package.Package = pkg_table.search(pkg_id)

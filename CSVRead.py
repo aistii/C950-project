@@ -86,7 +86,7 @@ def addr_name_lookup(addr_id):
     :return: the street name
     """
     for addr in addr_list:
-        if addr[0] == addr_id:
+        if int(addr[0]) == int(addr_id):
             return addr[2]
 
 
@@ -130,3 +130,6 @@ def add_pkgs(hash_table):
             gen_pkg = Package.Package(pkg_id, row[1], row[2], row[4], pkg_deadline, pkg_weight,
                                       "At or Arriving to Hub", "")
             hash_table.insert(pkg_id, gen_pkg)
+
+
+print(addr_name_lookup(0))
