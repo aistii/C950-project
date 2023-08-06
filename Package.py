@@ -30,11 +30,14 @@ class Package:
         self.zipcode = new_zip
 
     def update_status(self, to_status, delivery_time):
-        if to_status == "En Route":
-            self.status = to_status
-        elif to_status == "Delivered":
+        self.status = to_status
+        self.delivery_time = delivery_time
+        """if to_status == "En Route":
             self.status = to_status
             self.delivery_time = delivery_time
+        elif to_status == "Delivered":
+            self.status = to_status
+            self.delivery_time = delivery_time"""
 
     def addr_id_lookup(self):
         return CSVRead.addr_id_lookup(self.address)

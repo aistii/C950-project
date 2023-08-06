@@ -28,7 +28,7 @@ class Truck:
         """
         pkg_id = package.id_num
         self.pkg_list.append(pkg_id)
-        package.update_status("En Route", "")
+        package.update_status("En Route", None)
 
     def denote_delivered(self, pkg_id: int, hash_table: HashTable.HashTable, delivery_time: datetime.timedelta):
         """
