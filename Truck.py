@@ -6,13 +6,12 @@ import datetime
 
 class Truck:
     speed: int = 18  # Miles per hour
-    max_pkg: int = 16
 
     def __init__(self, truck_number: int, departure_time: datetime.timedelta):
         self.truck_num: int = truck_number
         self.pkg_list = []
         self.odo: int = 0  # Miles traveled so far
-        self.current_addr = "4001 South 700 East"
+        self.current_addr = "4001 South 700 East"  # Trucks will start at the WGU hub
         self.departure_time: datetime.timedelta = departure_time  # When the truck actually leaves the hub.
         self.current_time: datetime.timedelta = departure_time  # Current "time" of the truck
 
@@ -29,6 +28,7 @@ class Truck:
         pkg_id = package.id_num
         self.pkg_list.append(pkg_id)
         package.update_status("En Route", None)
+        package.departure_time = self.departure_time
 
     def denote_delivered(self, pkg_id: int, hash_table: HashTable.HashTable, delivery_time: datetime.timedelta):
         """
@@ -57,13 +57,6 @@ class Truck:
         Calculates how long it will take the package to arrive to destination.
         :param miles: miles traveled
         :return: current time
-        """
-        """
-        (1) The formula for time taken would be:
-        (distance in miles) divided by (speed of the truck). 
-        
-        (2) That will return the time in decimal hours, 
-        which needs to be converted into an easier-to-read HH:MM:SS format.
         """
         dec_time_taken = miles / self.speed  # Decimal time in hours
         hrs = int(dec_time_taken)
