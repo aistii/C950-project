@@ -1,3 +1,7 @@
+"""
+Class file for Truck.
+"""
+
 import HashTable
 import Package
 import CSVRead
@@ -5,6 +9,14 @@ import datetime
 
 
 class Truck:
+    """
+    The truck is where packages are stored. It holds information about the list of packages loaded onto the
+    truck, its ID number, its mileage, address, and certain important timestamps.
+
+    While the truck does store a list of packages, it doesn't store all the packages on one truck.
+
+    It has a space complexity of O(1) - constant.
+    """
     speed: int = 18  # Miles per hour
 
     def __init__(self, truck_number: int, departure_time: datetime.timedelta):
@@ -22,6 +34,8 @@ class Truck:
 
         This list only stores package IDs, not the package objects themselves.
 
+        **Time Complexity:** O(1) - constant
+
         :param package: package to load onto the truck
         :return:
         """
@@ -36,6 +50,8 @@ class Truck:
 
         This looks up the ID first to update it.
 
+        **Time Complexity:** O(N) - linear (due to the use of hash_table.search())
+
         :param pkg_id: id of package to update
         :param hash_table: table to look up the object
         :param delivery_time: time of delivery
@@ -48,15 +64,21 @@ class Truck:
     def fetch_curr_addr_id(self):
         """
         Provides the address ID of the truck's location.
+
+        **Time Complexity:** O(N) - linear (due to using CSVRead's addr_id_lookup() function)
         :return: address ID number
+        :rtype: int
         """
         return CSVRead.addr_id_lookup(self.current_addr)
 
     def calc_time_taken(self, miles: float):
         """
         Calculates how long it will take the package to arrive to destination.
+
+        **Time Complexity:** O(1) - constant
         :param miles: miles traveled
         :return: current time
+        :rtype: datetime.timedelta
         """
         dec_time_taken = miles / self.speed  # Decimal time in hours
         hrs = int(dec_time_taken)
@@ -67,6 +89,8 @@ class Truck:
     def update_cur_time(self, time: datetime.timedelta):
         """
         Updates the current time of the truck.
+
+        **Time Complexity:** O(1) - constant
         :param time: time taken
         :return: new current time
         """

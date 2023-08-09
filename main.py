@@ -5,6 +5,10 @@ import HashTable
 import CSVRead
 import Truck
 
+"""
+Hash Table + Truck Generation, Loading Trucks
+"""
+
 pkg_table = HashTable.HashTable()
 CSVRead.add_pkgs(pkg_table)
 truck_1 = Truck.Truck(1, datetime.timedelta(hours=8, minutes=0, seconds=0))  # Leaves at 8AM
@@ -20,53 +24,16 @@ for pkg in pkg_set_2:
 for pkg in pkg_set_3:
     truck_3.load_pkg(pkg_table.search(pkg))
 
-
-def sorted_by_time(pkg_list: list):
-    """
-    Sorts a truck's list by the time. It will move all EOD deadline packages to the end of the list.
-    :param pkg_list: list to sort
-    :return: sorted list of packages
-    :rtype: list[Package.Package]
-    """
-    new_list: list[Package.Package] = []
-    for pkg in pkg_list:
-        pkg_obj = pkg_table.search(pkg)
-        new_list.append(pkg_obj)
-
-    def time_sort(pkg: Package.Package):
-        """
-        A function to act as a key by sorting by time.
-
-        **Time Complexity:** O(1)
-
-        :param pkg: package
-        :return: package's deadline
-        """
-        return pkg.deadline
-
-    def eod_pick(pkg: Package.Package):
-        """
-        A function to act as a filter to find which are marked as "EOD".
-
-        **Time Complexity:**
-
-        :param pkg: package
-        :return: boolean if package has EOD deadline
-        """
-        return pkg.deadline == "EOD"
-
-    eod_list = list(filter(eod_pick, new_list))
-    for pkg in eod_list:
-        new_list.remove(pkg)
-    new_list = list(sorted(new_list, key=time_sort, reverse=True) + eod_list)
-    return new_list
+"""
+Method Declarations
+"""
 
 
 def combined_odo():
     """
     Totals all three trucks' mileage for this program.
 
-    **Time Complexity:**
+    **Time Complexity:** O(1) - constant
     :return: sum of all three trucks' mileage
     :rtype: float
     """
@@ -80,9 +47,11 @@ def find_nearest_neighbor(current_addr: int, remaining_list: list[Package.Packag
     Uses the distance matrix to find the closest address.
 
     It does not account for the possibility that the closest package is at the same node,
-    that will be taken cared of in create_route(). It doesn't look at the time constraints, either.
+    that will be taken care of in create_route(). It doesn't look at the time constraints, either.
 
-    **Time Complexity:**
+    **Time Complexity:** O(N^2) - quadratic (polynomial)
+
+    **Space Complexity:** O(N)- linear
     :param current_addr: current address' ID number
     :param remaining_list: list of packages left (package objects)
     :param truck: truck object detail to change current address + count mileage
@@ -116,7 +85,9 @@ def find_same_addr(pkg_list: list[int], addr):
     """
     Creates a list of packages that have the same address.
 
-    **Time Complexity:**
+    **Time Complexity:** O(N^2) - quadratic (polynomial)
+
+    **Space Complexity:** O(N) - linear
     :param pkg_list: list of package IDs
     :param addr: address to search for
     :return: list of packages with the same IDs
@@ -135,7 +106,8 @@ def create_route(pkg_list: list[int], truck: Truck.Truck):
     """
     Creates the route given the list of packages and the truck.
 
-    **Time Complexity:**
+    **Time Complexity:** O(N^3) - cubic (polynomial)
+    **Space Complexity:** O(N) - linear
     :param pkg_list: The original loading list for the truck that contains only IDs
     :param truck: The truck being used
     :return: a list of pkg id to visit in that order
@@ -168,7 +140,7 @@ def add_to_odo(mileage: float, truck: Truck.Truck):
     """
     Adds to the truck's odometer to increase miles traveled.
 
-    **Time Complexity:**
+    **Time Complexity:** O(1) - constant
     :param mileage: miles traveled
     :param truck: truck that traveled
     :return: None
@@ -180,7 +152,7 @@ def return_truck(truck_a: Truck.Truck, truck_b: Truck.Truck):
     """
     Determines which truck to send back to the hub based on distance.
 
-    **Time Complexity:**
+    **Time Complexity:** O(N) - linear
     :param truck_a: truck A
     :param truck_b: truck B
     :return: chosen truck to send back to hub
@@ -204,6 +176,11 @@ def return_truck(truck_a: Truck.Truck, truck_b: Truck.Truck):
     return returning_truck
 
 
+"""
+Command Line Interface Methods
+"""
+
+
 def menu_control(choice):
     """
     Handles the user's input for which action the program should perform.
@@ -211,6 +188,7 @@ def menu_control(choice):
     :return: boolean if there was an error with reading the input
     :rtype: bool
     """
+
     def time_check(user_input):
         try:
             (h, m, s) = user_input.split(":")
@@ -292,7 +270,7 @@ def menu_control(choice):
         print(f'Total Mileage: {combined_odo()}')
         user_selection()
 
-    if choice == "Qq":  # Quit Program
+    if choice in "Qq":  # Quit Program
         print("Goodbye!")
         exit()
     return True
@@ -316,6 +294,10 @@ def user_selection():
     menu_control(user_choice)
 
 
+"""
+Program Entry Point (Route Generation, Start CLI)
+"""
+
 truck_1_route = create_route(pkg_set_1, truck_1)
 truck_2_route = create_route(pkg_set_2, truck_2)
 truck_returning = return_truck(truck_1, truck_2)
@@ -327,8 +309,6 @@ for pkg in truck_3.pkg_list:
 package_9: Package.Package = pkg_table.search(9)
 package_9.update_address("410 S State St", "Salt Lake City", "84111")
 truck_3_route = create_route(pkg_set_3, truck_3)
-
-
 print("================================="
       "\n🚛 Welcome to WGUPS Delivery 🚛"
       "\n=================================")

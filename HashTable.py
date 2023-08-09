@@ -1,7 +1,17 @@
+"""
+Class file for hash table.
+"""
+
 import Package
 
 
 class HashTable:
+    """
+    The hash table holds package information inserted in. Chaining is enabled and will resize if the load factor
+    exceeds 80% full.
+
+    A hash table instance has a space complexity of O(N) - linear.
+    """
     def __init__(self, size=10, load_factor=0.8):
         self.table = [[None] for _ in range(size)]
         self.load_factor = load_factor
@@ -10,6 +20,8 @@ class HashTable:
     def hash_func(k):
         """
         Hashes the provided key.
+
+        **Time Complexity:** O(1) - constant
         :param k: key
         :return: hashed key
         """
@@ -19,6 +31,8 @@ class HashTable:
         """
         Creates a new hash table double the size of the old one,
         rehashes the old keys, and then inserts them into the appropriate place on the table.
+
+        **Time Complexity:** O(N) - linear
         :param old_table: old hash table with values
         :return: blank resized table
         """
@@ -35,6 +49,8 @@ class HashTable:
         """
         Inserts a value into the hash table, using a key-value pair. A resize is triggered if it
         exceeds the 80% filled threshold.
+
+        **Time Complexity:** O(N) - linear (worst case due to potentially resizing)
         :param k: package id
         :param v: package object
         :return: nothing
@@ -59,6 +75,8 @@ class HashTable:
     def search(self, k: int):
         """
         Searches for a package based on its key.
+
+        **Time Complexity:** O(N) - linear
         :param k: key for object
         :return: the object
         """

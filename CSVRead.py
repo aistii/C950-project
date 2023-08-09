@@ -25,27 +25,17 @@ import datetime
 
 import Package
 
-# Reads addresses
+# Reads addresses **Time + Space Complexity:** O(N) - linear (on the basis of how long the file is)
 with open('data/addresses.csv', newline='') as addresses_csv:
     addr_reader = csv.reader(addresses_csv)
     # Each row in the CSV is the address ID number, the name of the location, and the actual address
     addr_list = [row for row in addr_reader]
-# Reads in distances
+# Reads in distances **Time + Space Complexity:** O(N) - linear (on the basis of how long the file is)
 with open('data/distances.csv', newline='') as distances_csv:
     dist_reader = csv.reader(distances_csv)
     # Each row in the CSV ties in with each row in the CSV.
     # Each "column" effectively makes the adjacency matrix.
     dist_list = [loc for loc in dist_reader]
-
-
-def print_dist_mtx():
-    for loc in dist_list:
-        print(f'== {loc}')
-
-
-def print_addr_list():
-    for addr in addr_list:
-        print(f'== {addr}')
 
 
 def dist_mtx_lookup(id_a, id_b):
@@ -56,6 +46,8 @@ def dist_mtx_lookup(id_a, id_b):
 
     Note that the ID numbering for addresses start at 0, since index counting starts at 0. It will correlate directly
     and correctly to the indices in question.
+
+    **Time Complexity:** O(1) - constant
     :param id_a: first address ID (origin address ID)
     :param id_b: second address ID (destination address ID)
     :return: distance in miles as a float
@@ -71,6 +63,8 @@ def addr_id_lookup(target_addr):
     Takes the street name portion of the address. Used in tandem with the distance lookup function.
     Note that the address passed in must be an address; make sure it's not a truck or package object, but
     rather, their **address attribute**.
+
+    **Time Complexity:** O(N) - linear
     :param target_addr: the street name
     :return: the address ID number
     :rtype: int
@@ -83,6 +77,8 @@ def addr_id_lookup(target_addr):
 def addr_name_lookup(addr_id):
     """
     A reversal of addr_id_lookup(); it will take the ID and return the appropriate address.
+
+    **Time Complexity:** O(N) - linear
     :param addr_id: address ID
     :return: the street name
     """
@@ -91,26 +87,19 @@ def addr_name_lookup(addr_id):
             return addr[2]
 
 
-def print_pkg():
-    """
-    Prints out each line of the packages.csv file.
-    :return: none
-    """
-    with open('data/packages.csv', newline='') as package_csv:
-        pkg_reader = csv.reader(package_csv)
-        for pkg in pkg_reader:
-            print(f'=== {pkg}')
-
-
 def add_pkgs(hash_table):
     """
-    Adds all packages listed in the packages.csv file to the hash table. The ID number and weight is converted
-    from a string to an integer. The rest of the fields in the CSV file are kept as a string.
+    Adds all packages listed in the packages.csv file to the hash table.
 
     This will only run **once** throughout the program at the initial time it starts.
 
     - ID number is used as a key to insert into the hash table.
     - Some of the other fields build the package object to store as a value with the key it's associated with.
+
+    **Time Complexity:** O(N) - linear
+
+    **Space Complexity:** O(N) - linear (on the basis of how long the file is)
+    :param hash_table: hash table to insert into
     :return:
     """
     with open('data/packages.csv', 'r', newline='') as package_csv:
