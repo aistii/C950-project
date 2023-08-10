@@ -1,4 +1,5 @@
 # Leanna Garner === Student ID 010636491 === C950 Project
+import csv
 import datetime
 import Package
 import HashTable
@@ -190,6 +191,11 @@ def menu_control(choice):
     """
 
     def time_check(user_input):
+        """
+        Verifies that the time entered was correctly formatted.
+        :param user_input: the user's time input
+        :return:
+        """
         try:
             (h, m, s) = user_input.split(":")
             converted_time = datetime.timedelta(hours=int(h), minutes=int(m), seconds=int(s))
@@ -198,11 +204,53 @@ def menu_control(choice):
             return False
 
     def id_check(user_input):
+        """
+        Verifies that the ID entered was correctly formatted.
+        :param user_input: the user's ID input
+        :return:
+        """
         try:
             id_num = int(user_input)
             return True
         except ValueError:
             return False
+
+    def return_original_address(pkg: Package.Package):
+        """
+        Mainly for handling the change-of-address issue present in packaage 9, but this can be used
+        for other packages that may have had a change of address down the road.
+
+        By looking at the package ID, we parse the list in the CSV file to find what the original address was.
+
+        This doesn't modify anything! It looks at elements 1, 2, and 4 in the package CSV.
+        :param pkg: the package suspect to have a change of address
+        :return: the string version of the address
+        :rtype: str
+        """
+        current_addr = pkg.address
+        current_city = pkg.city
+        current_zip = pkg.zipcode
+
+        with open('data/packages.csv', 'r', newline='') as package_csv:
+            pkg_csv = csv.reader(package_csv)
+            pkg_list = [row for row in pkg_csv]
+
+        list_v_pkg = pkg_list[pkg.id_num - 1]
+        # the package CSV is in ascending order by ID, so we can access it this way
+
+        (org_addr, org_city, org_zip) = list_v_pkg[1], list_v_pkg[2], list_v_pkg[4]
+
+        # it may be explicitly stated
+        potential_wrong_addr_note = "wrong address" in list_v_pkg[7].lower()
+
+        # If there is not a perfect match, or if the variable above explicitly read that
+        # there is an incorrect address
+        if (potential_wrong_addr_note is True) or not ((current_addr == org_addr) and (current_city == org_city)
+                                                       and (current_zip == org_zip)):
+            result_addr_str = f'{org_addr}, {org_city} {org_zip}'
+        else:
+            result_addr_str = f'{current_addr}, {current_city} {current_zip}'
+        return result_addr_str
 
     if choice == "1":  # Search with a PKG id and provide time
         pkg_id = input("Enter a valid ID number (1-40): ")
@@ -218,14 +266,21 @@ def menu_control(choice):
         (h, m, s) = time_of_pkg.split(":")
         converted_user_time = datetime.timedelta(hours=int(h), minutes=int(m), seconds=int(s))
         if converted_user_time < chosen_package.departure_time:
-            d_str = f"is at or arriving to hub."
+            d_str = f"is at or arriving to hub"
         elif chosen_package.departure_time < converted_user_time < chosen_package.delivery_time:
             d_str = f"is in transit."
         else:
             d_str = f"was delivered at {chosen_package.delivery_time}"
+
+        addr_str = f'{chosen_package.address}, {chosen_package.city} {chosen_package.zipcode}'
+        if pkg_id == 9 and converted_user_time < datetime.timedelta(hours=10, minutes=20, seconds=0):
+            addr_str = return_original_address(chosen_package)
+        elif pkg_id == 9 and converted_user_time >= datetime.timedelta(hours=10, minutes=20, seconds=0):
+            addr_str = f'{chosen_package.address}, {chosen_package.city} {chosen_package.zipcode}'
+
         print(f'{"=" * 80}\n'
               f'📦\t Package {chosen_package.id_num} Details @ {converted_user_time}:\n'
-              f'\t - Address: {chosen_package.address}, {chosen_package.city}, {chosen_package.zipcode}\n'
+              f'\t - Address: {addr_str}\n'
               f'\t - Weight: {chosen_package.weight}kg\n'
               f'\t - Delivery Deadline: {chosen_package.deadline}\n'
               f'\t - Status: Package {d_str}.\n'
@@ -247,9 +302,16 @@ def menu_control(choice):
                 d_str = f"is in transit."
             else:
                 d_str = f"was delivered at {cur_pkg.delivery_time}."
+
+            addr_str = f'{cur_pkg.address}, {cur_pkg.city} {cur_pkg.zipcode}'
+            if pkg_id == 9 and converted_user_time < datetime.timedelta(hours=10, minutes=20, seconds=0):
+                addr_str = return_original_address(cur_pkg)
+            elif pkg_id == 9 and converted_user_time >= datetime.timedelta(hours=10, minutes=20, seconds=0):
+                addr_str = f'{cur_pkg.address}, {cur_pkg.city} {cur_pkg.zipcode}'
+
             print(f'{"=" * 80}\n'
                   f'📦\t Package {cur_pkg.id_num} Details @ {converted_user_time}:\n'
-                  f'\t - Address: {cur_pkg.address}, {cur_pkg.city}, {cur_pkg.zipcode}\n'
+                  f'\t - Address: {addr_str}\n'
                   f'\t - Weight: {cur_pkg.weight}kg\n'
                   f'\t - Delivery Deadline: {cur_pkg.deadline}\n'
                   f'\t - Status: Package {d_str}\n'
